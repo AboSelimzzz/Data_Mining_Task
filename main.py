@@ -1,6 +1,6 @@
 import pandas
 
-minimum_support = 3
+minimum_support = 2
 
 DataSet = pandas.read_csv("Horizontal_Format.csv")
 All_Items = []
@@ -14,25 +14,26 @@ for i in range(len(DataSet.values)):
 for i in range(len(DataSet.values)):
     All_Items += str.split(Transactions[i], ',')
 
-for i in All_Items:
-    if i not in UniqueItems:
-        UniqueItems += i
 
-for element in UniqueItems:
+for i in All_Items:
+    if not (i in UniqueItems):
+        UniqueItems.append(i)
+
+
+for eachitem in UniqueItems:
     support = 0
     for i in Transactions:
-        for j in i:
-            if j == element:
-                support += 1
-                break
-    Support_Items[element] = support
+        if i.find(eachitem) != -1:
+            support = support + 1
+
+    Support_Items[eachitem] = support
 
 Support_Items = {key: value for key, value in Support_Items.items() if value >= minimum_support}
 
 
 def generating_item_sets(frequent_item_set, k_level):
-    candidates = []
     if k_level == 2:
+        candidates = []
         for i, value in enumerate(frequent_item_set):
             for j, value2 in enumerate(frequent_item_set):
                 if j > i:
@@ -42,22 +43,22 @@ def generating_item_sets(frequent_item_set, k_level):
                     candidates.append(each_candidate)
         return candidates
     else:
+        candidates = frequent_item_set
         tmp = []
         for i in range(len(candidates)):
-            for j in range(len(candidates)):
-                Done = 1
-                if j > i:
-                    for index in range(k_level - 2):
-                        if candidates[i][index] != candidates[j][index]:
-                            Done = 0
-                            break
+            for j in range( i+1,len(candidates)):
 
-                        if Done:
-                            each_candidate = []
-                            for k in candidates[i]:
-                                each_candidate.append(k)
-                            each_candidate.append(candidates[j][-1])
-                            tmp.append(each_candidate)
+                if candidates[i][0:k_level-2] == candidates[j][0:k_level-2]:
+                    each_candidate = []
+                    for k in candidates[i]:
+                        each_candidate.append(k)
+                    each_candidate.append(candidates[j][-1])
+                    tmp.append(each_candidate)
+
+
+
+
         return tmp
+
 
 
