@@ -1,13 +1,15 @@
 import pandas
 
-minimum_support =   2
+minimum_support =  3
+minimum_confidence = 0
 
-DataSet = pandas.read_csv("WannyData.csv")
+DataSet = pandas.read_csv("Horizontal_Format.csv")
 All_Items = []
 Transactions = DataSet.values.tolist()
 UniqueItems = []
 Support_Items = {}
 allFreqItems = {}
+AllitemsConfidence = {}
 
 for i in range(len(DataSet.values)):
     Transactions[i] = Transactions[i][1]
@@ -87,5 +89,7 @@ while True :
     i+=1
 
 
-
-print(allFreqItems)
+for item in list(allFreqItems.keys()):
+    print(f" Support  {item}:     {allFreqItems[item]}")
+    if type(item) ==tuple :
+        print(f" confidence  {item}:     {allFreqItems[item]}")
