@@ -1,12 +1,13 @@
 import pandas
 
-minimum_support = 2
+minimum_support =   2
 
-DataSet = pandas.read_csv("Horizontal_Format.csv")
+DataSet = pandas.read_csv("WannyData.csv")
 All_Items = []
 Transactions = DataSet.values.tolist()
 UniqueItems = []
 Support_Items = {}
+allFreqItems = {}
 
 for i in range(len(DataSet.values)):
     Transactions[i] = Transactions[i][1]
@@ -30,6 +31,7 @@ for eachitem in UniqueItems:
 
 Support_Items = {key: value for key, value in Support_Items.items() if value >= minimum_support}
 
+allFreqItems.update(Support_Items)
 
 def generating_item_sets(frequent_item_set, k_level):
     if k_level == 2:
@@ -43,11 +45,10 @@ def generating_item_sets(frequent_item_set, k_level):
                     candidates.append(each_candidate)
         return candidates
     else:
-        candidates = frequent_item_set
+        candidates = list(frequent_item_set.keys())
         tmp = []
         for i in range(len(candidates)):
             for j in range( i+1,len(candidates)):
-
                 if candidates[i][0:k_level-2] == candidates[j][0:k_level-2]:
                     each_candidate = []
                     for k in candidates[i]:
@@ -59,6 +60,32 @@ def generating_item_sets(frequent_item_set, k_level):
 
 
         return tmp
+def getFrequentItems(candidates):
+    freqItems={}
+    for candidate in candidates :
+        support = 0
+        for transaction in Transactions :
+            for item in candidate :
+                if transaction.find(item)==-1:
+                    break
+                if item==candidate[-1]:
+                   support+=1
+        if support >= minimum_support:
+            freqItems[tuple(candidate)] = support
+    return freqItems
+
+
+i=3
+items = generating_item_sets(Support_Items,2)
+while True :
+    freq = getFrequentItems(items)
+    allFreqItems.update(freq)
+    if len(freq)<=1:
+        break
+
+    items = generating_item_sets(freq,i)
+    i+=1
 
 
 
+print(allFreqItems)
