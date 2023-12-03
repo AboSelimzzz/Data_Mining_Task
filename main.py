@@ -1,6 +1,10 @@
+from itertools import permutations
+
 import pandas
-DataSet = pandas.read_csv("Horizontal_Format.csv")
+DataSet = pandas.read_csv("Vertical_Format.csv")
 if (DataSet.columns[0] != "Tid" and DataSet.columns[1] != "items"):
+    print("-----------------------Vertical Data----------------------------")
+    print(DataSet)
     horizontal_DataSet = {}
     unique_ids = []
     for i in DataSet['TID_set']:
@@ -23,16 +27,19 @@ if (DataSet.columns[0] != "Tid" and DataSet.columns[1] != "items"):
 
     DataSet = pandas.DataFrame(horizontal_DataSet.items(), columns=['TID', 'items'])
     DataSet['items'] = DataSet['items'].apply(lambda x:','.join(x))
+    print("----------------------Converted To Horizontal--------------------------")
+    print(DataSet)
+    print("-----------------------------------------------------------------------")
 
-
-minimum_support =  3
-minimum_confidence = 0
+minimum_support =  int(input("minimum support ??"))
+minimum_confidence = float(input("minimum confidence ??"))
 All_Items = []
 Transactions = DataSet.values.tolist()
 UniqueItems = []
 Support_Items = {}
 allFreqItems = {}
 AllitemsConfidence = {}
+All_rules = []
 
 for i in range(len(DataSet.values)):
     Transactions[i] = Transactions[i][1]
@@ -101,18 +108,119 @@ def getFrequentItems(candidates):
 
 
 i=3
+print(f"c1 : {UniqueItems}")
+print(f"L1:{allFreqItems}")
+print("------------------------------------------------------------------------------------------")
 items = generating_item_sets(Support_Items,2)
 while True :
+    print(f"c{i-1}: {items}")
     freq = getFrequentItems(items)
+    print(f"L{i-1} : {freq}")
+    print("------------------------------------------------------------------------------------------")
     allFreqItems.update(freq)
     if len(freq)<=1:
         break
 
     items = generating_item_sets(freq,i)
     i+=1
+for element in list(allFreqItems.keys()):
+    for i in range(1,len(element)):
+        for subset in permutations(element, i):
+            rule = (tuple(sorted(subset)), tuple(sorted(item for item in element if item not in subset)))
+            All_rules.append(rule)
+print("All Frequent Items")
+print(allFreqItems)
+print("-------------------------------------------------------------------------------------------")
+def calc_conf(item1,item2):
+    sortedfreq = {}
+    for i in list(allFreqItems.keys()):
+        sortedfreq[tuple(sorted(i))]=allFreqItems[i]
+    if (len(item1)==1):
+        item1 = item1[0]
+        s1=allFreqItems[item1]
+    else :
+        s1=sortedfreq[item1]
+
+    if type(item1) ==tuple :
+        item1=item1+item2
+    else :
+        item1=tuple(item1)+item2
+    found= False
+
+    s2= sortedfreq[tuple(sorted(item1))]
+
+    confidence = (s2/s1)*100
+    return confidence
 
 
-for item in list(allFreqItems.keys()):
-    print(f" Support  {item}:     {allFreqItems[item]}")
-    if type(item) ==tuple :
-        print(f" confidence  {item}:     {allFreqItems[item]}")
+stronk = {}
+weak={}
+for item in All_rules :
+    print(f"{item[0]}---->{item[1]}: {calc_conf(item[0],item[1])}")
+    if calc_conf(item[0],item[1]) >= minimum_confidence*100:
+        stronk[item]=calc_conf(item[0],item[1])
+    else :
+        weak[item]=calc_conf(item[0], item[1])
+print("------------------------------------------------------------------------------------------")
+print("-----------------------------STRONG RULES--------------------------------------------------")
+for item in list(stronk.keys()) :
+    print(f"{item[0]}---->{item[1]}: {stronk[item]}")
+
+
+def calc_lift(item1,item2):
+    sortedfreq = {}
+    for i in list(allFreqItems.keys()):
+        sortedfreq[tuple(sorted(i))]=allFreqItems[i]
+    if (len(item1)==1):
+        item1 = item1[0]
+        s1=allFreqItems[item1]
+    else :
+        s1=sortedfreq[item1]
+
+    s1=s1/len(Transactions)
+
+    if (len(item2) == 1):
+        item2 = item2[0]
+        s2 = allFreqItems[item2]
+    else:
+        s2=sortedfreq[item2]
+
+    s2 = s2 / len(Transactions)
+
+
+
+
+    if type(item1) ==tuple and type(item2)==tuple :
+        item1=item1+item2
+    else :
+        item1=tuple(item1)+tuple(item2)
+    found= False
+    sortedfreq = {}
+    for i in list(allFreqItems.keys()):
+        sortedfreq[tuple(sorted(i))]=allFreqItems[i]
+    s3= sortedfreq[tuple(sorted(item1))]
+    s3=s3/len(Transactions)
+
+
+
+    lift= s3/(s1*s2)
+    return lift
+
+Positive_Correlation = {}
+Negative_Correlation ={}
+for item in All_rules :
+    if calc_lift(item[0],item[1]) > 1:
+        Positive_Correlation[item]=calc_lift(item[0],item[1])
+    else :
+        Negative_Correlation[item]=calc_lift(item[0], item[1])
+
+print("------------------------------------------------------------------------------------------")
+print("-----------------------------POSITIVE CORRELATION--------------------------------------------------")
+for item in list(Positive_Correlation.keys()) :
+    print(f"{item[0]}---->{item[1]}: {Positive_Correlation[item]}")
+
+
+print("------------------------------------------------------------------------------------------")
+print("-----------------------------NEGATIVE CORRELATION--------------------------------------------------")
+for item in list(Negative_Correlation.keys()) :
+    print(f"{item[0]}---->{item[1]}: {Negative_Correlation[item]}")
