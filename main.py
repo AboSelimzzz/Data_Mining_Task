@@ -1,9 +1,32 @@
 import pandas
+DataSet = pandas.read_csv("Horizontal_Format.csv")
+if (DataSet.columns[0] != "Tid" and DataSet.columns[1] != "items"):
+    horizontal_DataSet = {}
+    unique_ids = []
+    for i in DataSet['TID_set']:
+        for j in i:
+            if j not in unique_ids:
+                if j != ',':
+                 unique_ids.append(j)
+
+    for i in range(0,len(DataSet.values)):
+        for ID in DataSet.values[i][1]:
+            if ID in unique_ids:
+                ID=int(ID)
+                if ID in horizontal_DataSet:
+                    if isinstance(horizontal_DataSet[ID], list):
+                        horizontal_DataSet[ID].append(DataSet.values[i][0])
+                    else:
+                        horizontal_DataSet[ID] = [horizontal_DataSet[ID], DataSet.values[i][0]]
+                else:
+                    horizontal_DataSet[ID] = [DataSet.values[i][0]]
+
+    DataSet = pandas.DataFrame(horizontal_DataSet.items(), columns=['TID', 'items'])
+    DataSet['items'] = DataSet['items'].apply(lambda x:','.join(x))
+
 
 minimum_support =  3
 minimum_confidence = 0
-
-DataSet = pandas.read_csv("Horizontal_Format.csv")
 All_Items = []
 Transactions = DataSet.values.tolist()
 UniqueItems = []
