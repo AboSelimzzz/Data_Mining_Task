@@ -1,7 +1,7 @@
 from itertools import permutations
 
 import pandas
-DataSet = pandas.read_csv("Vertical_Format.csv")
+DataSet = pandas.read_csv("Horizontal_Format.csv")
 if (DataSet.columns[0] != "Tid" and DataSet.columns[1] != "items"):
     print("-----------------------Vertical Data----------------------------")
     print(DataSet)
@@ -125,6 +125,8 @@ while True :
     i+=1
 for element in list(allFreqItems.keys()):
     for i in range(1,len(element)):
+        if type(element)!=tuple:
+            continue
         for subset in permutations(element, i):
             rule = (tuple(sorted(subset)), tuple(sorted(item for item in element if item not in subset)))
             All_rules.append(rule)
@@ -143,8 +145,9 @@ def calc_conf(item1,item2):
 
     if type(item1) ==tuple :
         item1=item1+item2
+
     else :
-        item1=tuple(item1)+item2
+        item1=(item1,)+item2
     found= False
 
     s2= sortedfreq[tuple(sorted(item1))]
@@ -187,13 +190,14 @@ def calc_lift(item1,item2):
 
     s2 = s2 / len(Transactions)
 
-
-
-
-    if type(item1) ==tuple and type(item2)==tuple :
+    if type(item1) ==tuple and  type(item2) ==tuple :
         item1=item1+item2
     else :
-        item1=tuple(item1)+tuple(item2)
+        if type(item2) != tuple:
+            item2=(item2,)
+        if type(item1) != tuple:
+            item1 = (item1,)
+        item1=tuple(item1)+item2
     found= False
     sortedfreq = {}
     for i in list(allFreqItems.keys()):
